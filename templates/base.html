@@ -1,51 +1,61 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Landslide & Flood Monitoring</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Landslide & Flood Monitoring</title>
 
-    <!-- Main CSS files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cards.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/graphs.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cards.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/graphs.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Global UI Script -->
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+  <!-- Global UI script (dashboard helpers) - load early but defer execution to DOM ready -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+
+  <style>
+    /* Small improvement for consistent canvas heights */
+    .card canvas { height: 160px !important; width: 100% !important; display:block; }
+    .page-header { margin-bottom: 8px; }
+    .page-header h1 { margin: 0; font-size: 1.6rem; }
+    .header-meta { color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+    /* Keep sidebar glass as you requested (light glass effect) */
+    .sidebar { background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); }
+  </style>
 </head>
 
 <body>
 
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <div class="brand">Dashboard</div>
+  <!-- Sidebar (glass) -->
+  <div id="sidebar" class="sidebar">
+    <div class="brand">Dashboard</div>
 
-        <nav>
-            <a href="/" class="nav-link">Combined</a>
-            <a href="/flood" class="nav-link">Flood</a>
-            <a href="/landslide" class="nav-link">Landslide</a>
-            <a href="/camera" class="nav-link">Camera</a>
-        </nav>
+    <nav>
+      <a href="{{ url_for('index') }}" class="nav-link">Combined</a>
+      <a href="{{ url_for('flood') }}" class="nav-link">Flood</a>
+      <a href="{{ url_for('landslide') }}" class="nav-link">Landslide</a>
+      <a href="{{ url_for('camera') }}" class="nav-link">Camera</a>
+    </nav>
 
-        <div class="sidebar-bottom">
-            <button id="themeToggle" class="theme-btn">🌙</button>
-        </div>
+    <div class="sidebar-bottom">
+      <button id="themeToggle" class="theme-btn">☀</button>
     </div>
+  </div>
 
-    <!-- Sidebar Toggle Button -->
-    <button id="sidebarToggle" class="sidebar-toggle">☰</button>
+  <!-- Sidebar Toggle -->
+  <button id="sidebarToggle" class="sidebar-toggle">☰</button>
 
-    <!-- Main content -->
-    <div id="main" class="main">
-        {% block content %}{% endblock %}
-    </div>
+  <!-- Main content -->
+  <div id="main" class="main">
+    {% block content %}{% endblock %}
+  </div>
 
-    <!-- Scripts -->
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <!-- Page-specific JS files should be included by child templates AFTER this line -->
+  {% block scripts %}{% endblock %}
 
 </body>
-
 </html>
