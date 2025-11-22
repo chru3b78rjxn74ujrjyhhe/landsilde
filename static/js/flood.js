@@ -1,74 +1,80 @@
-let waterChart, rainChart, soilSatChart;
+let waterChart, rainChart, soilChart;
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    function createLine(ctx, label) {
-        return new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: [],
-                datasets: [{
-                    label: label,
-                    data: [],
-                    borderWidth: 2,
-                    tension: 0.25
-                }]
-            },
-            options: {
-                animation: { duration: 250, easing: "easeInOutQuart" },
-                scales: {
-                    x: { ticks: { color: "#aaa" } },
-                    y: { ticks: { color: "#aaa" } }
-                }
+// Create chart helper
+function createChart(ctx, label) {
+    return new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: [],
+            datasets: [{
+                label: label,
+                data: [],
+                borderWidth: 2,
+                pointRadius: 3,
+                tension: 0.2
+            }]
+        },
+        options: {
+            animation: false,
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
             }
-        });
+        }
+    });
+}
+
+function updateChart(chart, label, value) {
+    chart.data.labels.push(label);
+    chart.data.datasets[0].data.push(value);
+
+    // Limit chart to last 50 points
+    if (chart.data.labels.length > 50) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
     }
 
-    waterChart = createLine(
-        document.getElementById("waterLevel").getContext("2d"),
+    chart.update();
+}
+
+async function fetchFloodData() {
+    try {
+        const res = await fetch("/api/flood");
+        const data = await res.json();
+
+        if (data.error) return;
+
+        const label = data.labels[0];
+
+        updateChart(waterChart, label, data.water_level[0]);
+        updateChart(rainChart, label, data.rain_intensity[0]);
+        updateChart(soilChart, label, data.soil_sat[0]);
+
+        document.getElementById("floodDanger").innerText =
+            data.flood_danger.toFixed(0) + "%";
+
+    } catch (err) {
+        console.log("Fetch error:", err);
+    }
+}
+
+window.onload = function () {
+    waterChart = createChart(
+        document.getElementById("waterLevelChart").getContext("2d"),
         "Water level (cm)"
     );
 
-    rainChart = createLine(
-        document.getElementById("rainIntensity").getContext("2d"),
+    rainChart = createChart(
+        document.getElementById("rainChart").getContext("2d"),
         "Rain Intensity"
     );
 
-    soilSatChart = createLine(
-        document.getElementById("soilSat").getContext("2d"),
+    soilChart = createChart(
+        document.getElementById("soilChart").getContext("2d"),
         "Soil Saturation"
     );
 
-    setInterval(fetchAndUpdate, 1000);
-});
-
-
-async function fetchAndUpdate() {
-    try {
-        const resp = await fetch("/api/flood");
-        const d = await resp.json();
-
-        if (!d || d.error) return;
-
-        const t = d.labels[0];
-
-        // Always update charts (never freeze)
-        pushAndCap(waterChart.data.labels, t);
-        pushAndCap(waterChart.data.datasets[0].data, d.water_level[0]);
-        waterChart.update();
-
-        pushAndCap(rainChart.data.labels, t);
-        pushAndCap(rainChart.data.datasets[0].data, d.rain_intensity[0]);
-        rainChart.update();
-
-        pushAndCap(soilSatChart.data.labels, t);
-        pushAndCap(soilSatChart.data.datasets[0].data, d.soil_sat[0]);
-        soilSatChart.update();
-
-        // danger box
-        setRiskBox(document.getElementById("floodDanger"), d.flood_danger);
-
-    } catch (e) {
-        console.warn("Flood update error:", e);
-    }
-}
+    // 🔥 Fetch new readings every 1 second
+    setInterval(fetchFloodData, 1000);
+    fetchFloodData(); // first immediate update
+};
