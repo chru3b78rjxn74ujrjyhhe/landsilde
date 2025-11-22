@@ -1,80 +1,66 @@
-let waterChart, rainChart, soilChart;
+// flood.js - handles flood page charts and UI
 
-// Create chart helper
-function createChart(ctx, label) {
-    return new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: [],
-            datasets: [{
-                label: label,
-                data: [],
-                borderWidth: 2,
-                pointRadius: 3,
-                tension: 0.2
-            }]
-        },
-        options: {
-            animation: false,
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
+let waterChart, rainChart, soilSatChart;
+
+function createLineChart(ctx, label) {
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: label, data: [], tension: 0.4 }] },
+    options: {
+      animation: { duration: 300 },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: true },
+        y: { beginAtZero: true }
+      }
+    }
+  });
 }
 
-function updateChart(chart, label, value) {
-    chart.data.labels.push(label);
-    chart.data.datasets[0].data.push(value);
+document.addEventListener("DOMContentLoaded", () => {
+  const w = document.getElementById("waterLevel");
+  const r = document.getElementById("rainIntensity");
+  const s = document.getElementById("soilSat");
 
-    // Limit chart to last 50 points
-    if (chart.data.labels.length > 50) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
+  if (w) waterChart = createLineChart(w.getContext("2d"), "Water level");
+  if (r) rainChart = createLineChart(r.getContext("2d"), "Rain intensity");
+  if (s) soilSatChart = createLineChart(s.getContext("2d"), "Soil saturation");
+
+  // initial fetch + continuous polling
+  fetchAndUpdate();
+  setInterval(fetchAndUpdate, 1000);
+});
+
+async function fetchAndUpdate() {
+  try {
+    const resp = await fetch("/api/flood");
+    if (!resp.ok) return;
+    const d = await resp.json();
+    if (!d || d.error) return;
+
+    const t = (d.labels && d.labels[0]) ? d.labels[0] : new Date().toLocaleTimeString();
+
+    // Always push latest point (prevents freeze)
+    if (waterChart) {
+      window.LS_helpers.pushAndCap(waterChart.data.labels, t);
+      window.LS_helpers.pushAndCap(waterChart.data.datasets[0].data, d.water_level[0]);
+      waterChart.update();
     }
 
-    chart.update();
-}
-
-async function fetchFloodData() {
-    try {
-        const res = await fetch("/api/flood");
-        const data = await res.json();
-
-        if (data.error) return;
-
-        const label = data.labels[0];
-
-        updateChart(waterChart, label, data.water_level[0]);
-        updateChart(rainChart, label, data.rain_intensity[0]);
-        updateChart(soilChart, label, data.soil_sat[0]);
-
-        document.getElementById("floodDanger").innerText =
-            data.flood_danger.toFixed(0) + "%";
-
-    } catch (err) {
-        console.log("Fetch error:", err);
+    if (rainChart) {
+      window.LS_helpers.pushAndCap(rainChart.data.labels, t);
+      window.LS_helpers.pushAndCap(rainChart.data.datasets[0].data, d.rain_intensity[0]);
+      rainChart.update();
     }
+
+    if (soilSatChart) {
+      window.LS_helpers.pushAndCap(soilSatChart.data.labels, t);
+      window.LS_helpers.pushAndCap(soilSatChart.data.datasets[0].data, d.soil_sat[0]);
+      soilSatChart.update();
+    }
+
+    window.LS_helpers?.setRiskBox?.(document.getElementById("floodDanger"), d.flood_danger || 0);
+  } catch (e) {
+    console.warn("fetchAndUpdate (flood) failed:", e);
+  }
 }
-
-window.onload = function () {
-    waterChart = createChart(
-        document.getElementById("waterLevelChart").getContext("2d"),
-        "Water level (cm)"
-    );
-
-    rainChart = createChart(
-        document.getElementById("rainChart").getContext("2d"),
-        "Rain Intensity"
-    );
-
-    soilChart = createChart(
-        document.getElementById("soilChart").getContext("2d"),
-        "Soil Saturation"
-    );
-
-    // 🔥 Fetch new readings every 1 second
-    setInterval(fetchFloodData, 1000);
-    fetchFloodData(); // first immediate update
-};
