@@ -1,46 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <header class="page-header">
-    <h1>Live Camera Feed</h1>
-    <div class="header-meta">Real-time visual monitoring</div>
+  <h1>Camera</h1>
+  <div class="header-meta">Live camera snapshot</div>
 </header>
 
 <div class="grid">
-
-    <!-- CAMERA STREAM -->
-    <div class="card wide">
-        <h3>Camera Stream</h3>
-
-        <img id="camFeed"
-             src="/camera_feed"
-             alt="Camera Feed"
-             style="width:100%; border-radius: 12px; margin-top:12px;">
-
+  <div class="card wide">
+    <h3>Live Feed</h3>
+    <div style="text-align:center;">
+      <img id="cameraImg" src="{{ url_for('camera_feed') }}" alt="camera snapshot" style="max-width:100%;border-radius:8px;">
     </div>
-
-    <!-- STATUS -->
-    <div class="card">
-        <h3>Status</h3>
-        <p id="camStatus">Loading...</p>
-    </div>
-
+  </div>
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const img = document.getElementById("camFeed");
-    const status = document.getElementById("camStatus");
-
-    function reloadCam() {
-        img.src = "/camera_feed?" + new Date().getTime(); // prevent caching
-        status.textContent = "Live";
-    }
-
-    reloadCam();
-    setInterval(reloadCam, 1000);
-});
-</script>
-
 {% endblock %}
+
+{% block scripts %}
+  <script>
+    // Auto-refresh camera image every 2 seconds
+    setInterval(() => {
+      const img = document.getElementById('cameraImg');
+      img.src = "{{ url_for('camera_feed') }}" + "?t=" + Date.now();
+    }, 2000);
+  </script>
+{% endblock %}
+
