@@ -1,7 +1,7 @@
 import os
 import json
 import threading
-from flask import Flask, jsonify, render_template, Response
+from flask import Flask, jsonify, render_template, request, Response
 
 app = Flask(__name__)
 
@@ -65,7 +65,7 @@ def run_training():
 
     print("TRAINING STARTED...")
 
-    # Replace with your ML script
+    # ML script call (Pi-side)
     os.system("python train_lstm.py")
 
     state["mode"] = "normal"
@@ -100,10 +100,7 @@ def camera():
 
 @app.route("/camera_feed")
 def camera_feed():
-    """
-    Temporary static image feed.
-    Replace with OpenCV/MJPEG stream later.
-    """
+    """Temporary static image feed."""
     try:
         with open("static/camera.jpg", "rb") as f:
             img = f.read()
@@ -191,26 +188,34 @@ def api_landslide():
         return jsonify({"error": True})
 
 # -------------------------------------------------------
-# START SERVER
+# API — PI SENDS DATA TO WEB SERVER
 # -------------------------------------------------------
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
-
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-latest_data = {}  # store the latest Pi sensor data
+latest_data = {}
 
 @app.route("/api/data", methods=["POST"])
 def receive_data():
     global latest_data
     latest_data = request.json
     print("Received data from Pi:", latest_data)
+
+    # Save to LATEST_FILE so dashboards update
+    try:
+        with open(LATEST_FILE, "w") as f:
+            json.dump(latest_data, f, indent=4)
+    except:
+        pass
+
     return jsonify({"status": "OK"}), 200
 
 @app.route("/api/latest", methods=["GET"])
 def send_latest():
     return jsonify(latest_data)
+
+# -------------------------------------------------------
+# START SERVER
+# -------------------------------------------------------
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
