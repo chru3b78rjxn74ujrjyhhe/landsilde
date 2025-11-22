@@ -1,0 +1,154 @@
+/* -----------------------------------------------------------
+   GLOBAL ROOT VARIABLES (Default = Light Mode)
+----------------------------------------------------------- */
+
+:root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #1a1b1e;
+    --accent: #2b7cff;
+    --muted: #6f7a87;
+}
+
+/* -----------------------------------------------------------
+   GLOBAL RESET + BODY STYLE
+----------------------------------------------------------- */
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3 {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.header-meta {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -240px;
+    width: 240px;
+    height: 100vh;
+
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255,255,255,0.08);
+
+    display: flex;
+    flex-direction: column;
+    padding: 22px 18px;
+
+    transition: left 0.35s ease;
+    z-index: 200;
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.main.blur {
+    filter: blur(4px) brightness(0.7);
+    pointer-events: none;
+}
+
+.sidebar .brand {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text);
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.nav-link {
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none !important;
+    transition: background .25s, transform .15s;
+    font-size: 15px;
+}
+
+.nav-link:hover {
+    background: rgba(43, 124, 255, 0.12);
+    transform: translateX(6px);
+}
+
+.active-nav {
+    background: rgba(43, 124, 255, 0.25);
+    font-weight: 600;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+/* -----------------------------------------------------------
+   SIDEBAR TOGGLE BUTTON
+----------------------------------------------------------- */
+
+.sidebar-toggle {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+
+    cursor: pointer;
+    z-index: 300;
+
+    font-size: 22px;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+    transform: scale(1.12);
+}
+
+/* -----------------------------------------------------------
+   MAIN CONTENT AREA
+----------------------------------------------------------- */
+
+.main {
+    padding: 20px;
+    padding-left: 30px;
+    transition: filter .3s ease;
+}
+
+
+
+/* Layout for pages */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}

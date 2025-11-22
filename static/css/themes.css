@@ -1,0 +1,25 @@
+/* DARK THEME VARIABLES */
+body.dark {
+    --bg: #0f1221;
+    --card: #11131a;
+    --text: #e6eef5;
+    --accent: #6ea8ff;
+    --muted: #9aa8bb;
+}
+
+/* Theme Button */
+.theme-btn {
+    background: rgba(255,255,255,0.10);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform .15s ease, background .2s ease;
+    color: var(--text);
+}
+
+.theme-btn:hover {
+    transform: scale(1.06);
+    background: rgba(255,255,255,0.18);
+}
