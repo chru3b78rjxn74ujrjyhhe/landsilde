@@ -162,15 +162,17 @@ def api_flood():
             data = json.load(f)
 
         return jsonify({
-            "labels": [data.get("timestamp", "NA")],
+            "labels": [data["timestamp"]],
             "water_level": [data.get("distance", 0)],
             "rain_intensity": [data.get("rain", 0)],
             "soil_sat": [data.get("soil1", 0)],
-            "flood_danger": data.get("flood", 0)
+            "flood_danger": data.get("flood", 0),
         })
 
-    except:
+    except Exception as e:
+        print("FLOOD API ERROR:", e)
         return jsonify({"error": True})
+
 
 
 # -------------------------------------------------------
@@ -209,4 +211,5 @@ def api_landslide():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
