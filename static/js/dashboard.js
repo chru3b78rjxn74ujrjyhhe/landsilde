@@ -1,65 +1,127 @@
-document.addEventListener("DOMContentLoaded", () => {
+// dashboard.js - Global helpers + UI logic (must be loaded first)
 
-    const sidebar = document.getElementById("sidebar");
-    const main = document.getElementById("main");
+(function () {
+  // -------------------------------------------------------
+  // Utility: Run code when DOM is ready (safe + robust)
+  // -------------------------------------------------------
+  function onReady(fn) {
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      setTimeout(fn, 1);
+    } else {
+      document.addEventListener("DOMContentLoaded", fn);
+    }
+  }
+
+  // -------------------------------------------------------
+  // GLOBAL HELPERS (used by other js files)
+  // -------------------------------------------------------
+
+  // Animate + color danger boxes
+  function setRiskBox(boxEl, value) {
+    if (!boxEl) return;
+
+    // integer percent
+    const pct = Math.round(Number(value) || 0);
+    boxEl.innerText = pct + "%";
+
+    if (pct < 40) {
+      boxEl.style.background = "#d8ffd9";
+      boxEl.style.color = "#005500";
+    } else if (pct < 75) {
+      boxEl.style.background = "#fff7d0";
+      boxEl.style.color = "#7a5a00";
+    } else {
+      boxEl.style.background = "#ffe3e3";
+      boxEl.style.color = "#7a0000";
+    }
+
+    // Pulse animation
+    boxEl.style.transform = "scale(1.05)";
+    setTimeout(() => (boxEl.style.transform = "scale(1)"), 220);
+  }
+
+  // Keep arrays from growing too large
+  function pushAndCap(arr, item, cap = 60) {
+    arr.push(item);
+    while (arr.length > cap) arr.shift();
+  }
+
+  // Expose helpers globally
+  window.LS_helpers = {
+    setRiskBox,
+    pushAndCap,
+  };
+
+  // -------------------------------------------------------
+  // MAIN UI LOGIC
+  // -------------------------------------------------------
+  onReady(() => {
+    const sidebar = document.querySelector(".sidebar");
+    const main = document.querySelector(".main");
     const toggle = document.getElementById("sidebarToggle");
     const themeBtn = document.getElementById("themeToggle");
 
-    // ---------------------------
-    // SIDEBAR TOGGLE
-    // ---------------------------
-    toggle.addEventListener("click", (e) => {
-        e.stopPropagation();
+    // Sidebar Toggle Logic
+    if (toggle && sidebar && main) {
+      toggle.addEventListener("click", (ev) => {
+        ev.stopPropagation();
         sidebar.classList.toggle("open");
         main.classList.toggle("blur");
-    });
+      });
 
-    // Click outside → close sidebar
-    main.addEventListener("click", () => {
+      main.addEventListener("click", (ev) => {
         if (sidebar.classList.contains("open")) {
-            sidebar.classList.remove("open");
-            main.classList.remove("blur");
+          sidebar.classList.remove("open");
+          main.classList.remove("blur");
         }
-    });
+      });
 
-    // ESC → close
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            sidebar.classList.remove("open");
-            main.classList.remove("blur");
+      document.addEventListener("keydown", (ev) => {
+        if (ev.key === "Escape") {
+          sidebar.classList.remove("open");
+          main.classList.remove("blur");
         }
-    });
-
-    // ---------------------------
-    // THEME TOGGLE
-    // ---------------------------
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark");
-        themeBtn.textContent = "☀️";
+      });
     }
 
-    themeBtn.addEventListener("click", () => {
+    // Theme Toggle (Dark / Light)
+    if (themeBtn) {
+      if (localStorage.getItem("ls_theme") === "dark") {
+        document.body.classList.add("dark");
+        themeBtn.textContent = "☀️";
+      } else {
+        themeBtn.textContent = "🌙";
+      }
+
+      themeBtn.addEventListener("click", () => {
         document.body.classList.toggle("dark");
+        const dark = document.body.classList.contains("dark");
+        localStorage.setItem("ls_theme", dark ? "dark" : "light");
+        themeBtn.textContent = dark ? "☀️" : "🌙";
+      });
+    }
 
-        if (document.body.classList.contains("dark")) {
-            localStorage.setItem("theme", "dark");
-            themeBtn.textContent = "☀️";
+    // Highlight Active Navigation Link
+    try {
+      const links = document.querySelectorAll(".nav-link");
+      const current = window.location.pathname.replace(/\/+$/, "") || "/";
+
+      links.forEach((lnk) => {
+        const href = new URL(lnk.href, window.location.origin)
+          .pathname.replace(/\/+$/, "") || "/";
+        if (href === current) {
+          lnk.classList.add("active-nav");
         } else {
-            localStorage.setItem("theme", "light");
-            themeBtn.textContent = "🌙";
+          lnk.classList.remove("active-nav");
         }
-    });
+      });
+    } catch (e) {
+      console.warn("Navigation highlighting skipped:", e);
+    }
+  });
 
-    // ---------------------------
-    // NAV ACTIVE HIGHLIGHT
-    // ---------------------------
-    const links = document.querySelectorAll(".nav-link");
-    const current = window.location.pathname;
+})();
 
-    links.forEach(link => {
-        if (link.getAttribute("href") === current) {
-            link.classList.add("active-nav");
-        }
-    });
 
 });
+
