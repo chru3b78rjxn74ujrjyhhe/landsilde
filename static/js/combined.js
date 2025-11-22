@@ -35,37 +35,32 @@ async function updateCombined() {
     const resp = await fetch("/api/combined");
     if (!resp.ok) return;
     const dC = await resp.json();
-
     if (!dC) return;
 
-    // Update risk boxes
     window.LS_helpers?.setRiskBox?.(document.getElementById("landslideRisk"), dC.landslide || 0);
     window.LS_helpers?.setRiskBox?.(document.getElementById("floodRisk"), dC.flood || 0);
     window.LS_helpers?.setRiskBox?.(document.getElementById("combinedRisk"), dC.combined || 0);
 
     const t = dC.timestamp || new Date().toLocaleTimeString();
 
-    // push & cap LS
     if (miniLSChart) {
       window.LS_helpers.pushAndCap(miniLSChart.data.labels, t);
       window.LS_helpers.pushAndCap(miniLSChart.data.datasets[0].data, Number(dC.landslide || 0));
       miniLSChart.update();
     }
-
     if (miniFLChart) {
       window.LS_helpers.pushAndCap(miniFLChart.data.labels, t);
       window.LS_helpers.pushAndCap(miniFLChart.data.datasets[0].data, Number(dC.flood || 0));
       miniFLChart.update();
     }
-
     if (miniCombinedChart) {
       window.LS_helpers.pushAndCap(miniCombinedChart.data.labels, t);
       window.LS_helpers.pushAndCap(miniCombinedChart.data.datasets[0].data, Number(dC.combined || 0));
       miniCombinedChart.update();
     }
-
   } catch (e) {
-    // silent fail; will retry on next interval
     console.warn("updateCombined failed:", e);
   }
 }
+
+
