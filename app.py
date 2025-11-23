@@ -98,14 +98,17 @@ def camera():
 # CAMERA FEED
 # -------------------------------------------------------
 
-@app.route("/camera_feed")
-def camera_feed():
-    try:
-        with open("static/camera.jpg", "rb") as f:
-            img = f.read()
-        return Response(img, mimetype="image/jpeg")
-    except:
-        return Response(b"", mimetype="image/jpeg")
+@app.route("/api/camera", methods=["POST"])
+def api_camera():
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "no file received"}), 400
+
+    # Save incoming image
+    file.save("static/camera.jpg")
+    print("📥 Camera image saved.")
+
+    return jsonify({"status": "ok"})
 
 
 # -------------------------------------------------------
@@ -211,5 +214,6 @@ def api_landslide():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
