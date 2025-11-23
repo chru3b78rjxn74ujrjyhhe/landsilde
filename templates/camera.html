@@ -1,28 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <header class="page-header">
-  <h1>Camera</h1>
-  <div class="header-meta">Live camera snapshot</div>
+    <h1>Camera</h1>
+    <div class="header-meta">Live camera snapshot (updates every 2 seconds)</div>
 </header>
 
 <div class="grid">
-  <div class="card wide">
-    <h3>Live Feed</h3>
-    <div style="text-align:center;">
-      <img id="cameraImg" src="{{ url_for('camera_feed') }}" alt="camera snapshot" style="max-width:100%;border-radius:8px;">
+    <div class="card wide">
+        <h3>Live Feed</h3>
+
+        <div style="text-align:center; padding:10px;">
+            <img id="cameraImg" 
+                 src="{{ url_for('camera_feed') }}?t={{ random() }}" 
+                 alt="Camera snapshot"
+                 style="max-width:100%; border-radius:12px; box-shadow:0 0 15px rgba(0,0,0,0.4);">
+        </div>
     </div>
-  </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    // Auto-refresh camera image every 2 seconds
-    setInterval(() => {
-      const img = document.getElementById('cameraImg');
-      img.src = "{{ url_for('camera_feed') }}" + "?t=" + Date.now();
-    }, 2000);
-  </script>
-{% endblock %}
+<script>
+    // 🔄 update image every 2 seconds
+    function updateCamera() {
+        const img = document.getElementById("cameraImg");
+        img.src = "{{ url_for('camera_feed') }}" + "?cache=" + Date.now();
+    }
 
+    setInterval(updateCamera, 2000);
+</script>
+{% endblock %}
